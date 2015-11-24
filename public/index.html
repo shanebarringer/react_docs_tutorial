@@ -19,14 +19,47 @@
         {id: 2, author: "Jordan Walke", text: "This is another comment"}
       ];
       let CommentBox = React.createClass(
-        {
+        {  loadCommentsFromServer: function() {
+          $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            cache: false,
+            success: function(data) {
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        handleCommentSubmit(updatedComment){
+          $.ajax({
+            url: this.props.url,
+            dataType: 'json',
+            type: 'POST',
+            data: updatedComment,
+            success: function(data) {
+              this.setState({data: data});
+            }.bind(this),
+            error: function(xhr, status, err) {
+              console.error(this.props.url, status, err.toString());
+            }.bind(this)
+          });
+        },
+        getInitialState: function() {
+          return {data: []};
+        },
+        componentDidMount: function() {
+          this.loadCommentsFromServer();
+          setInterval(this.loadCommentsFromServer, this.props.pollInterval);
+        },
           render() {
 
             return(
               <div className="commentBox">
                 <h1>Hello World! I am a CommentBox.</h1>
-                <CommentList bar={this.props.foo}/>
-                <CommentForm />
+                <CommentList data={this.state.data}/>
+                <CommentForm onCommentSubmit={this.handleCommentSubmit}/>
 
               </div>
             );
@@ -39,7 +72,7 @@
         {
           render(){
 
-            let commentNodes = this.props.bar.map(function(x) {
+            let commentNodes = this.props.data.map(function(x) {
               return(
                 <Comment author={x.author} key={x.id}>
                   {x.text}
@@ -58,11 +91,36 @@
 
       let CommentForm = React.createClass(
         {
+          getInitialState(){
+            return {author: "", text: ''}
+          },
+          handleAuthorChange(x){
+            this.setState({author: x.target.value });
+          },
+          handleTextChange(x){
+            this.setState({text: x.target.value});
+          },
+          handleSubmit(x){
+            x.preventDefault();
+            let author = this.state.author.trim();
+            let text = this.state.text.trim();
+
+            if (!text || !author) {
+              return;
+            }
+
+            this.props.onCommentSubmit({author: author, text: text});
+            this.setState({author: '', text: ''});
+
+          },
+
           render(){
             return (
-              <div className="commentForm">
-                Hello World! I am a commentForm
-              </div>
+              <form className="commentForm" onSubmit={this.handleSubmit}>
+                <input type="text" placeholder="Your name" value={this.state.author} onChange={this.handleAuthorChange}/>
+                <input type="text" placeholder="Say something..." value={this.state.text} onChange={this.handleTextChange}/>
+                <input type="submit" value="Post" />
+              </form>
             );
           }
         }
@@ -84,7 +142,7 @@
       );
 
       ReactDOM.render(
-        <CommentBox foo={data}/>,
+        <CommentBox url="/api/comments" pollInterval={2000} />,
         document.getElementById("content")
       );
 
