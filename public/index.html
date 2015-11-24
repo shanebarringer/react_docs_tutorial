@@ -33,6 +33,10 @@
           });
         },
         handleCommentSubmit(updatedComment){
+          let comments = this.state.data;
+          updatedComment.id = Date.now();
+          let newComments = comments.concat([updatedComment]);
+          this.setState({data: newComments});
           $.ajax({
             url: this.props.url,
             dataType: 'json',
