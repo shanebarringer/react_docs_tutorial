@@ -20,7 +20,34 @@
           render() {
             return(
               <div className="commentBox">
-                Hello World! I am a CommentBox.
+                <h1>Hello World! I am a CommentBox.</h1>
+                <CommentList />
+                <CommentForm />
+              </div>
+
+            );
+          }
+        }
+      );
+
+      let CommentList = React.createClass(
+        {
+          render(){
+            return (
+              <div className="commentList">
+                Hello World! I am a commentList
+              </div>
+            );
+          }
+        }
+      );
+
+      let CommentForm = React.createClass(
+        {
+          render(){
+            return (
+              <div className="commentForm">
+                Hello World! I am a commentForm
               </div>
             );
           }
